@@ -4,29 +4,42 @@ function Dashboard() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState("");
-  const [expenses, setexpenses] = useState([]);
+  const [expenses, setExpenses] = useState([]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const savedExpenses = JSON.parse(localStorage.getItem("expenses")) || [];
-    setexpenses(savedExpenses);
-  },[])
+    setExpenses(savedExpenses);
+  }, []);
 
   const onSubmitHandle = (e) => {
     e.preventDefault();
-    
+
     const newExpense = {
-      price, description, type, date: Date.now(),
-      
+      id: Date.now(), // unique id
+      price,
+      description,
+      type,
+      date: Date.now(),
     };
-localStorage.setItem("expenses", JSON.stringify([...expenses,newExpense]));
-    setexpenses([...expenses,newExpense])
 
-    
+    const updatedExpenses = [...expenses, newExpense];
 
-    // optional reset
+    setExpenses(updatedExpenses);
+    localStorage.setItem("expenses", JSON.stringify(updatedExpenses));
+
+    // Reset fields
     setPrice("");
     setDescription("");
     setType("");
+  };
+
+  const handleDelete = (id) => {
+    const updatedExpenses = expenses.filter(
+      (expense) => expense.id !== id
+    );
+
+    setExpenses(updatedExpenses);
+    localStorage.setItem("expenses", JSON.stringify(updatedExpenses));
   };
 
   return (
@@ -56,6 +69,7 @@ localStorage.setItem("expenses", JSON.stringify([...expenses,newExpense]));
           />
 
           <select
+            required
             value={type}
             onChange={(e) => setType(e.target.value)}
             className="border border-indigo-500 rounded-md py-2 px-4 w-96 text-center bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -74,16 +88,36 @@ localStorage.setItem("expenses", JSON.stringify([...expenses,newExpense]));
       </form>
 
       <div>
-        <h2 className="my-10 font-bold">Recent Entreis</h2>
-        {expenses.slice(-5).reverse().map((expenses, index)=>(
-          <div key={index} className="border-b border-gray-300 py-2">
-         <p>Price: {expenses.price}</p>
-          <p>Description: {expenses.description}</p>
-          <p>Type: {expenses.type}</p>
-          <p>Date: {new Date(expenses.date).toLocaleString("en-GB")}</p>
-          </div>
-        ))}
+        <h2 className="my-10 font-bold">Recent Entries</h2>
 
+        {expenses.length === 0 && (
+          <p className="text-gray-500">No entries yet.</p>
+        )}
+
+        {expenses
+          .slice(-5)
+          .reverse()
+          .map((expense) => (
+            <div
+              key={expense.id}
+              className="border-b border-gray-300 py-2"
+            >
+              <p>Price: {expense.price}</p>
+              <p>Description: {expense.description}</p>
+              <p>Type: {expense.type}</p>
+              <p>
+                Date:{" "}
+                {new Date(expense.date).toLocaleString("en-GB")}
+              </p>
+
+              <button
+                onClick={() => handleDelete(expense.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded mt-2"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
       </div>
     </div>
   );
